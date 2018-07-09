@@ -1,0 +1,15 @@
+---
+- name: Base setup for all nodes in cluster
+  hosts: all
+  roles:
+    - base
+
+
+  # tasks:
+  #   - name: ensure ntpd is at the latest version
+  #     yum: pkg=ntp state=latest
+  #     notify:
+  #       - restart ntpd
+  # handlers:
+  #   - name: restart ntpd
+  #     service: name=ntpd state=restarted

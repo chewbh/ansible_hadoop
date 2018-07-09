@@ -1,0 +1,17 @@
+---
+# tasks for base role
+
+- name: update hosts file to make all nodes aware of each other without DNS
+  template:
+    src=hosts.j2
+    dest=/etc/hosts
+    backup=yes
+  become: yes
+
+- name: install yum utilities
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - yum-utils
+  become: yes
