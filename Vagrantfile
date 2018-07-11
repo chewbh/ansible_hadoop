@@ -43,7 +43,7 @@ Vagrant.configure("2") do |config|
   N = 2
   (1..N).each do |i|
     config.vm.define "NYH-Group1-DataNode#{i}" do |node|
-      node.vm.hostname = "NYH-Group1-DataNode#{2+i}"
+      node.vm.hostname = "NYH-Group1-DataNode#{i}"
       node.vm.network "private_network", ip: "192.168.50.#{2+i}"
 
       node.vm.provider "virtualbox" do |vb|
@@ -64,8 +64,6 @@ Vagrant.configure("2") do |config|
             "ambari" => ["NYH-Group1-NameNode"],
             "datanodes" => ["NYH-Group1-DataNode[1:#{i}]"],
             "all_groups:children" => ["ambari", "datanodes"],
-            # "group1:vars" => {"variable1" => 9,
-            #                   "variable2" => "example"}
           }
         end
       end

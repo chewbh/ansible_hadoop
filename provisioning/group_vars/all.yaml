@@ -1,0 +1,17 @@
+#
+# Global variables for all nodes
+#
+---
+host_arch: amd64
+
+# force ansible inventory hostname to be the actual node's hostname
+ansibe_hostname_as_actual: yes
+
+# the list of users to create with support for passwordless login within the cluster
+passwordless_ssh_users:
+  - name: hadoop
+    sudoer: yes
+    passwordless: yes
+  - name: sysadmin
+    sudoer: yes
+    passwordless: yes

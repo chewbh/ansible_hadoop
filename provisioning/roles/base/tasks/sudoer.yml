@@ -1,0 +1,19 @@
+# configure sudoers
+#
+# As per best practice, create a sudo group
+# and give user sudo access by adding them to the sudo group
+---
+- name: ensure 'sudo' group exists
+  group:
+    name: sudo
+    state: present
+  become: yes
+
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+  become: yes
