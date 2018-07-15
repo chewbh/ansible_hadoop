@@ -12,6 +12,13 @@
     state: present
   become: yes
 
+- name: "generate the ssh key for root"
+  shell: ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa
+  args:
+    creates: /root/.ssh/id_rsa
+  when: ssh_user.name == "root"
+  become: yes
+
 - name: "add {{ ssh_user.name }} to sudo group"
   user:
     name: "{{ ssh_user.name }}"
@@ -23,7 +30,7 @@
 - name: "fetch {{ ssh_user.name }}'s public ssh key from remote hosts"
   fetch:
     dest: "/tmp/ansible/ssh_key_role/{{ ssh_user.name }}/{{ inventory_hostname }}/id_rsa.pub"
-    src: "/home/{{ ssh_user.name }}/.ssh/id_rsa.pub"
+    src: "{{ ssh_user.home_dir | default('/home/' + ssh_user.name) }}/.ssh/id_rsa.pub"
     flat: yes
   become: yes
   changed_when: false # as will remove them after below task
@@ -50,6 +57,6 @@
   known_hosts:
     name: "{{ item.item }}"
     key: "{{ item.stdout }}"
-    path: "/home/{{ ssh_user.name }}/.ssh/known_hosts"
+    path: "{{ ssh_user.home_dir | default('/home/' + ssh_user.name) }}/.ssh/known_hosts"
   with_items: "{{ ssh_known_host_results.results }}"
   become: yes

@@ -1,0 +1,28 @@
+
+- name: install epel release (if online)
+  yum:
+    name: epel-release
+    state: present
+  become: yes
+  when: is_online
+
+- name: install other basic os utilities
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - vim
+    - tmux
+    - wget
+    - curl
+    - tar
+    - unzip
+    - git
+    - tree
+    - rsync
+    - zsh
+    - htop
+    - jq
+    - xclip
+    - python-pip
+  become: yes

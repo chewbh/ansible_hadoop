@@ -1,0 +1,38 @@
+# configure firewall (not recommended to disable it directly in production)
+---
+
+- name: check if firewalld is installed
+  yum:
+    list="firewalld"
+  register: firewalld_installed
+  tags:
+   - firewall
+
+- name: disable firewalld
+  systemd:
+    name: firewalld
+    enabled: no
+    state: stopped
+  ignore_errors: yes
+  become: yes
+  when: firewalld_installed.results|length>0 and firewalld_installed.results[1].yumstate == 'installed'
+  tags:
+   - firewall
+
+- name: check if iptables is installed
+  yum:
+    list="iptables-service"
+  register: iptables_installed
+  tags:
+   - firewall
+
+- name: disable iptables
+  systemd:
+    name: iptables
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  become: yes
+  when: iptables_installed.results|length>0 and iptables_installed.results[1].yumstate == 'installed'
+  tags:
+   - firewall

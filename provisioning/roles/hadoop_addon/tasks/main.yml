@@ -1,0 +1,22 @@
+---
+- name: install snappy on hadoop nodes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - snappy
+    - snappy-devel
+  become: yes
+
+- name: ensure else install lzo on hadoop nodes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - lzo
+    - lzo-devel
+    - hadooplzo
+    - hadooplzo-native
+  become: yes
+
+

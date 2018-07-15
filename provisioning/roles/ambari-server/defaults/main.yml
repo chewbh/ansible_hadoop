@@ -1,0 +1,8 @@
+
+repo_base_url: http://public-repo-1.hortonworks.com
+
+ambari_repo_url: "{{ repo_base_url }}/ambari/centos{{ ansible_distribution_major_version }}/2.x/updates/{{ ambari_version }}"
+
+hdp_repo_url: "{{ repo_base_url }}/HDP/centos{{ ansible_distribution_major_version }}/2.x/updates/{{ hdp_version }}"
+hdp_utils_repo_url: "{{ repo_base_url }}/HDP-UTILS-1.1.0.22/repos/centos{{ ansible_distribution_major_version }}"
+

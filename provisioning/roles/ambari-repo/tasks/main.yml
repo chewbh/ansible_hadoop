@@ -1,0 +1,12 @@
+---
+- name: add the ambari repository (yum)
+  yum_repository:
+    name: "ambari-{{ ambari_version }}"
+    description: "ambari Version - ambari-{{ ambari_version }}"
+    baseurl: "{{ ambari_repo_url }}"
+    file: 'ambari'
+    state: present
+    gpgcheck: yes
+    gpgkey: "{{ ambari_repo_url }}/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins"
+  when: ansible_os_family|lower == "redhat"
+  become: yes

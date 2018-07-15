@@ -1,0 +1,35 @@
+# tasks for ambari client role
+---
+- name: install ambari-agent
+  yum:
+    name: ambari-agent
+    update_cache: yes
+    state: latest
+  notify: Reload systemd
+  become: yes
+
+- name: set the ambari Server in the agent configuration
+  lineinfile:
+    path: /etc/ambari-agent/conf/ambari-agent.ini
+    regexp: "^hostname="
+    line: "hostname={{ hostvars[groups['ambari-server']|sort|list|first]['ansible_fqdn'] }}"
+    state: present
+  notify: Restart ambari-agent
+  become: yes
+
+- name: enable ambari-agent service
+  service:
+    name: ambari-agent
+    enabled: yes
+  ignore_errors: true
+  become: yes
+
+- name: start the ambari-agent service
+  service:
+    name: ambari-agent
+    state: started
+  become: yes
+
+# Confirm the Agent hosts are registered with the Server.
+# http://your.ambari.server:8080/api/v1/hosts
+

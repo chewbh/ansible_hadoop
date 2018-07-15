@@ -2,14 +2,20 @@
 - name: Base setup for all nodes in cluster
   hosts: all
   roles:
-    - base
+    - common
+    - hadoop_os
 
+- name: ambari server setup
+  hosts: ambari-server
+  roles:
+   - ambari-server
 
-  # tasks:
-  #   - name: ensure ntpd is at the latest version
-  #     yum: pkg=ntp state=latest
-  #     notify:
-  #       - restart ntpd
-  # handlers:
-  #   - name: restart ntpd
-  #     service: name=ntpd state=restarted
+- name: ambari agent setup
+  hosts: ambari-
+  roles:
+   - ambari-client
+
+- name: Install Snappy all nodes in cluster
+  hosts: all
+  roles:
+    - hadoop_addon

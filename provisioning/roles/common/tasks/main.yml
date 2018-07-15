@@ -1,0 +1,107 @@
+# tasks for base role
+---
+
+- hostname:
+    name: "{{ inventory_hostname }}"
+  become: yes
+  when: ansibe_hostname_as_actual
+
+- import_tasks: hosts.yml
+
+- name: install yum utilities
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - yum-utils
+  become: yes
+
+- import_tasks: useful_utilities.yml
+
+- import_tasks: sudoer.yml
+
+- include_tasks: users.yml
+  with_items: "{{ passwordless_ssh_users }}"
+  loop_control:
+    loop_var: ssh_user
+  tags:
+    user_ssh_keys
+
+- import_tasks: time_ntp.yml
+  tags: ntp
+
+# Selinux incurs a 7-10% performance penalty on a Hadoop cluster
+- name: disable selinux (not recommended in real setup for security reasons)
+  selinux:
+    state: disabled
+  become: yes
+  tags: selinux
+
+- import_tasks: firewall.yml
+
+- name: set umask on all using profile.d
+  copy:
+    src: ../templates/set_umask.sh
+    dest: /etc/profile.d/set_umask.sh
+    mode: 0755
+  become: yes
+
+- sysctl:
+    name: vm.swappiness
+    value: 0
+    state: present
+  become: yes
+
+# ambari requires ulimit of 10000 (soft / hard)
+# hdfs and mapred users to be at least 32K (use recommended value from HDP2)
+- name: set soft ulimit for open file descriptors
+  pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nofile
+    value: 32768
+  become: yes
+
+# ambari requires ulimit of 10K (soft / hard)
+# hdfs and mapred users to be at least 32K (use recommended value from HDP2)
+- name: set hard ulimit for open file descriptors
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nofile
+    value: 32768
+  become: yes
+
+# use recommended value from HDP2
+- name: set soft ulimit for open processes
+  pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nproc
+    value: 65536
+  become: yes
+
+# use recommended value from HDP2
+- name: set hard ulimit for open processes
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nproc
+    value: 65536
+  become: yes
+
+# recommended by Cloudera to diable ipv6
+- name: Disable IPv6 with sysctl
+  sysctl: name={{ item }} value=1 state=present
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+    - net.ipv6.conf.lo.disable_ipv6
+  become: yes
+
+# - name: Restart server
+#   command: /sbin/shutdown -r +1
+#   async: 0
+#   poll: 0
+#   ignore_errors: true
+#   become: yes

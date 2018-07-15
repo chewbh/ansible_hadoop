@@ -1,0 +1,42 @@
+# configure timezone and ntp
+---
+
+- name: set timezone
+  shell: timedatectl set-timezone Asia/Singapore
+  become: yes
+
+- name: install NTP
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ntp
+  become: yes
+  tags: ntp
+
+# - name: Copy over the NTP configuration
+#   template: src=ntp.conf.j2 dest=/etc/ntp.conf
+#   notify:
+#   - restart ntpd
+#   become: yes
+#   tags: ntp
+
+- name: make sure NTP is stopped
+  systemd: name=ntpd state=stopped enabled=yes
+  become: yes
+  tags: ntp
+
+# - name: Sync time initialy
+#   shell: ntpdate 172.16.20.1
+#   become: yes
+#   tags: ntp
+
+- name: make sure NTP is started up
+  systemd: name=ntpd state=started enabled=yes
+  become: yes
+  tags: ntp
+
+- name: Sync hwclock
+  shell: hwclock -w
+  become: yes
+  tags: ntp

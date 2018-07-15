@@ -29,26 +29,39 @@ Vagrant.configure("2") do |config|
   # The first argument is the path on the host
   # config.vm.synced_folder "../data", "/vagrant_data"
 
-  config.vm.define "NYH-Group1-NameNode" do |ambari|
-    ambari.vm.hostname = "NYH-Group1-NameNode"
-    ambari.vm.network "private_network", ip: "192.168.50.2"
+  NN = 2
+  (1..NN).each do |i|
+    config.vm.define "n-group3-nn#{i}" do |ambari|
+      ambari.vm.hostname = "N-Group3-NN#{i}"
+      ambari.vm.network "private_network", ip: "192.168.50.#{1+i}"
 
-    ambari.vm.provider "virtualbox" do |vb|
-      # Customize the amount of memory and vcpu on the VM:
-      vb.customize ["modifyvm", :id, "--cpus", "4", "--memory", "6144"]
+      ambari.vm.provider "virtualbox" do |vb|
+        # Customize the amount of memory and vcpu on the VM:
+        vb.customize ["modifyvm", :id, "--cpus", "2", "--memory", "4096"]
+      end
+      ambari.vm.provider "vmware_desktop" do |v|
+        # Customize the amount of memory and vcpu on the VM:
+        v.vmx["numvcpus"] = "2"
+        v.vmx["memsize"] = "4096"
+      end
     end
   end
 
   # config.vm.provision "shell", inline: "echo Hello"
-  N = 2
+  N = 3
   (1..N).each do |i|
-    config.vm.define "NYH-Group1-DataNode#{i}" do |node|
-      node.vm.hostname = "NYH-Group1-DataNode#{i}"
-      node.vm.network "private_network", ip: "192.168.50.#{2+i}"
+    config.vm.define "n-group3-dn#{i}" do |node|
+      node.vm.hostname = "N-Group3-DN#{i}"
+      node.vm.network "private_network", ip: "192.168.50.#{3+i}"
 
       node.vm.provider "virtualbox" do |vb|
         # Customize the amount of memory and vcpu on the VM:
-        vb.customize ["modifyvm", :id, "--cpus", "2", "--memory", "2048"]
+        vb.customize ["modifyvm", :id, "--cpus", "2", "--memory", "4096"]
+      end
+      node.vm.provider "vmware_desktop" do |v|
+        # Customize the amount of memory and vcpu on the VM:
+        v.vmx["numvcpus"] = "2"
+        v.vmx["memsize"] = "4096"
       end
 
       # Only execute once the Ansible provisioner,
@@ -61,29 +74,15 @@ Vagrant.configure("2") do |config|
           ansible.playbook = "provisioning/base_node.yaml"
           # ansible.inventory_path = "static_inventory"
           ansible.groups = {
-            "ambari" => ["NYH-Group1-NameNode"],
-            "datanodes" => ["NYH-Group1-DataNode[1:#{i}]"],
-            "all_groups:children" => ["ambari", "datanodes"],
+            "ambari-server" => ["n-group3-nn1"],
+            "ambari-client" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
+            "name-nodes" => ["n-group3-nn[1:#{i}]"],
+            "data-nodes" => ["n-group3-dn[1:#{i}]"],
+            "all_groups:children" => ["ambari-server", "ambari-client", "name-nodes", "data-nodes"]
           }
         end
       end
     end
   end
 
-  # 1 x Active NameNode
-  # 1 x Standby NameNode (for HA)
-  # 1 x Resource Manager
-  # 3 x DataNodes (minimum)
-
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
 end
