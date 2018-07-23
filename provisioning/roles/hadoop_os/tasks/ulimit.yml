@@ -1,0 +1,38 @@
+---
+# ambari requires ulimit of 10000 (soft / hard)
+# hdfs and mapred users to be at least 32K (use recommended value from HDP2)
+- name: set soft ulimit for open file descriptors
+  pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nofile
+    value: 32768
+  become: yes
+
+# ambari requires ulimit of 10K (soft / hard)
+# hdfs and mapred users to be at least 32K (use recommended value from HDP2)
+- name: set hard ulimit for open file descriptors
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nofile
+    value: 32768
+  become: yes
+
+# use recommended value from HDP2
+- name: set soft ulimit for open processes
+  pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nproc
+    value: 65536
+  become: yes
+
+# use recommended value from HDP2
+- name: set hard ulimit for open processes
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nproc
+    value: 65536
+  become: yes

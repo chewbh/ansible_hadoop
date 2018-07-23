@@ -17,6 +17,14 @@ Both Vagrant and Ansible are used to automate the entire Vm setup in VirtualBox 
 
 1. Install Vagrant locally. Follows instruction on https://www.vagrantup.com/intro/getting-started/install.html
 
+   In addition, install the following Vagrant's plugins:
+
+```sh
+vagrant plugin install vagrant-share
+vagrant plugin install vagrant-vbguest
+vagrant plugin install landrush
+```
+
 2. Install Ansible locally (for Linux OS only).
 
 3. Follow the steps below on shell / command line:

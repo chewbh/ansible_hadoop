@@ -7,7 +7,10 @@ host_arch: amd64
 is_online: yes
 
 # force ansible inventory hostname to be the actual node's hostname
-ansibe_hostname_as_actual: yes
+ansible_hostname_as_actual: yes
+
+# flag to indicate static hosts file to be replaced
+set_static_hosts: no
 
 # the list of users to create with support for passwordless login within the cluster
 passwordless_ssh_users:

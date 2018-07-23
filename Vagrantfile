@@ -8,11 +8,39 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   config.vm.box = "centos/7"
-  config.vm.box_version = "1803.01"
+  config.vm.box_version = "1804.02"
 
   # Disable automatic box update checking. boxes will only be checked for
   # updates when the user runs `vagrant box outdated`.
   config.vm.box_check_update = false
+
+  # set auto_update to ture to check the correct
+  # additions version when booting the machine
+  config.vbguest.auto_update = true
+  config.vbguest.auto_reboot = true
+
+  # made all VMs' host name resolvable among each other
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = true
+  config.hostmanager.ignore_private_ip = false
+  config.hostmanager.include_offline = true
+  # config.ssh.insert_key = false
+
+  # copy public SSH keys to the VM to enable passwordless login for vagrant user
+  config.vm.provision "file", source: "ssh_key/id_rsa", destination: "/home/vagrant/.ssh/id_rsa"
+  public_key = File.read("ssh_key/id_rsa.pub")
+  config.vm.provision "shell", :inline =>"
+    echo 'Copying public SSH keys to the VM'
+    mkdir -p /home/vagrant/.ssh
+    chmod 700 /home/vagrant/.ssh
+    echo '#{public_key}' >> /home/vagrant/.ssh/authorized_keys
+    chmod -R 600 /home/vagrant/.ssh/authorized_keys
+    echo 'Host n-group3-* 192.168.*.*' >> /home/vagrant/.ssh/config
+    echo 'StrictHostKeyChecking no' >> /home/vagrant/.ssh/config
+    echo 'UserKnownHostsFile /dev/null' >> /home/vagrant/.ssh/config
+    chmod -R 600 /home/vagrant/.ssh/config
+  ", privileged: false
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
@@ -47,7 +75,6 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  # config.vm.provision "shell", inline: "echo Hello"
   N = 3
   (1..N).each do |i|
     config.vm.define "n-group3-dn#{i}" do |node|
@@ -67,18 +94,19 @@ Vagrant.configure("2") do |config|
       # Only execute once the Ansible provisioner,
       # when all the machines are up and ready.
       if i == N
-        # Use :ansible or :ansible_local
-        node.vm.provision :ansible do |ansible|
+
+        # node.vm.synced_folder "provisioning/", "/ansible/provisioning", create: true
+
+        node.vm.provision "ansible_local" do |ansible|
           ansible.verbose = "v"
           ansible.limit = "all"
-          ansible.playbook = "provisioning/base_node.yaml"
-          # ansible.inventory_path = "static_inventory"
+          ansible.playbook = "/vagrant/provisioning/base_node.yaml"
           ansible.groups = {
             "ambari-server" => ["n-group3-nn1"],
-            "ambari-client" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
-            "name-nodes" => ["n-group3-nn[1:#{i}]"],
+            "ambari-clients" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
+            "name-nodes" => ["n-group3-nn[1:#{i-1}]"],
             "data-nodes" => ["n-group3-dn[1:#{i}]"],
-            "all_groups:children" => ["ambari-server", "ambari-client", "name-nodes", "data-nodes"]
+            "all_groups:children" => ["ambari-server", "ambari-clients", "name-nodes", "data-nodes"]
           }
         end
       end

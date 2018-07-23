@@ -11,7 +11,7 @@
    - ambari-server
 
 - name: ambari agent setup
-  hosts: ambari-
+  hosts: all
   roles:
    - ambari-client
 
@@ -19,3 +19,14 @@
   hosts: all
   roles:
     - hadoop_addon
+
+
+# curl -H "X-Requested-By: ambari" -X GET -u admin:admin http://c6401.ambari.apache.org:8080/api/v1/blueprints
+
+# export HIVE_CONF_DIR=/etc/hive/conf/conf.server
+
+
+# sudo yum install mysql-connector-java*
+# ls -al /usr/share/java/mysql-connector-java.jar
+# cd /var/lib/ambari-server/resources/
+# ln -s /usr/share/java/mysql-connector-java.jar mysql-connector-java.jar

@@ -8,7 +8,7 @@
     - snappy-devel
   become: yes
 
-- name: ensure else install lzo on hadoop nodes
+- name: ensure lzo installed on hadoop nodes
   yum:
     name: "{{ item }}"
     state: present

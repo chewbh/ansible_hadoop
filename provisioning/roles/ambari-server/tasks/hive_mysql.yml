@@ -1,0 +1,17 @@
+# pre-req steps needed for using mysql as hive metastore
+# make mysql connector available in ambari for hive server to download
+---
+- name: install mysql connector on ambari server for hive metastore
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-connector-java
+  become: yes
+
+- name: Create symbolic link to make the mysql connector available to ambari
+  file:
+    src: "/usr/share/java/mysql-connector-java.jar"
+    dest: "/var/lib/ambari-server/resources/mysql-connector-java.jar"
+    state: link
+  become: yes

@@ -1,2 +1,26 @@
 # os level tuning for hadoop nodes
 ---
+- name: configure to never swap
+  sysctl:
+    name: vm.swappiness
+    value: 0
+    state: present
+  become: yes
+
+# tune ulimit
+- import_tasks: ulimit.yml
+
+# - name: make java installed from ambari available in host
+#   shell: |
+#     echo "export JAVA_HOME=`cd /usr/jdk64/jdk*/ && pwd`" >> /etc/profile.d/hadoop.sh
+#     echo "export JRE_HOME=$JAVA_HOME/jre" >> /etc/profile.d/hadoop.sh
+#     echo "export PATH=$JAVA_HOME/bin:$PATH" >> /etc/profile.d/hadoop.sh
+#   become: yes
+
+
+# - name: restart server
+#   command: /sbin/shutdown -r +1
+#   async: 0
+#   poll: 0
+#   ignore_errors: true
+#   become: yes

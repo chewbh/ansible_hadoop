@@ -1,0 +1,5 @@
+---
+- name: ambari server setup
+  hosts: ambari-server
+  roles:
+   - ambari-server

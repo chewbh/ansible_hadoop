@@ -28,3 +28,5 @@
 
 - name : check if ambari-server is up
   wait_for : host=127.0.0.1 port=8080 delay=10
+
+- import_tasks: hive_mysql.yml

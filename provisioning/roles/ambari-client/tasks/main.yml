@@ -18,14 +18,14 @@
   become: yes
 
 - name: enable ambari-agent service
-  service:
+  systemd:
     name: ambari-agent
     enabled: yes
   ignore_errors: true
   become: yes
 
 - name: start the ambari-agent service
-  service:
+  systemd:
     name: ambari-agent
     state: started
   become: yes
