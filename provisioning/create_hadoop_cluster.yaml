@@ -1,0 +1,6 @@
+---
+- import_playbook: "prepare_nodes.yaml"
+
+- import_playbook: "configure_ambari.yaml"
+
+- import_playbook: "setup_edw.yaml"

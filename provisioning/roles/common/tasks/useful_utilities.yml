@@ -7,22 +7,9 @@
   when: is_online
 
 - name: install other basic os utilities
-  yum:
+  package:
     name: "{{ item }}"
+    update_cache: yes
     state: present
-  with_items:
-    - vim
-    - tmux
-    - wget
-    - curl
-    - tar
-    - unzip
-    - git
-    - tree
-    - rsync
-    - zsh
-    - htop
-    - jq
-    - xclip
-    - python-pip
+  with_items: "{{ base_os_packages | join(',') }}"
   become: yes

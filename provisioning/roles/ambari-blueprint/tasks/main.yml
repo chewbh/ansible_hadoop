@@ -1,102 +1,130 @@
-# - name: Upload the blueprint and the cluster creation template
-#   template:
-#     src: "{{ item.src }}"
-#     dest: "{{ item.dest }}"
-#     mode: 0640
-#     force: yes
-#   with_items:
-#     - src: "{{ blueprint_file }}"
-#       dest: "/tmp/{{ blueprint_name }}"
-#     - src: "{{ cluster_template_file }}"
-#       dest: "/tmp/cluster_template"
+- name: Upload the version definition, blueprint and cluster creation template
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0640
+    force: yes
+  with_items:
+    - src: "hdp_repo.json"
+      dest: "/tmp/hdp_repo.json"
+    - src: "blueprint_2.json"
+      dest: "/tmp/{{ blueprint_name }}.json"
+    - src: "blueprint_cluster_creation.json"
+      dest: "/tmp/cluster_template.json"
 
-# - name: Delete any existing blueprint called {{ blueprint_name }}
-#   uri:
-#     url: "http://{{ ansible_fqdn }}:8080/api/v1/blueprints/{{ blueprint_name }}"
-#     method: DELETE
-#     force_basic_auth: yes
-#     user: "{{ ambari_admin_user }}"
-#     password: "{{ ambari_admin_password }}"
-#     headers: '{"X-Requested-By":"ambari"}'
-#     status_code: 200,201,202,404
-#     return_content: no
+- name: Slurp the version definition
+  slurp:
+    src: "/tmp/hdp_repo.json"
+  register: hdp_version_definition
 
-# - name: Slurp the blueprint
-#   slurp:
-#     src: "/tmp/{{ blueprint_name }}"
-#   register: cluster_blueprint
+- name: Upload the version definition to the Ambari server
+  uri:
+    url: "http://{{ ansible_fqdn }}:8080/api/v1/version_definitions"
+    method: POST
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari"}'
+    body: " {{ hdp_version_definition.content | b64decode }}"
+    body_format: raw
+    status_code: 200,201,202,404
+    timeout: 60
+    return_content: no
 
-# - name: Upload the blueprint to the Ambari server
-#   uri:
-#     url: "http://{{ ansible_fqdn }}:8080/api/v1/blueprints/{{ blueprint_name }}"
-#     method: POST
-#     force_basic_auth: yes
-#     user: "{{ ambari_admin_user }}"
-#     password: "{{ ambari_admin_password }}"
-#     headers: '{"X-Requested-By":"ambari"}'
-#     body: " {{ cluster_blueprint.content | b64decode }}"
-#     body_format: raw
-#     status_code: 200,201,202,404
-#     timeout: 60
-#     return_content: no
+- name: Delete any existing blueprint - {{ blueprint_name }}
+  uri:
+    url: "http://{{ ansible_fqdn }}:8080/api/v1/blueprints/{{ blueprint_name }}"
+    method: DELETE
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari"}'
+    status_code: 200,201,202,404
+    return_content: no
 
-# - name: Check if a cluster {{ cluster_name }} already exists
-#   uri:
-#     url: "http://{{ ansible_fqdn }}:8080/api/v1/clusters/{{ cluster_name }}"
-#     method: GET
-#     force_basic_auth: yes
-#     user: "{{ ambari_admin_user }}"
-#     password: "{{ ambari_admin_password }}"
-#     headers: '{"X-Requested-By":"ambari"}'
-#     status_code: 200,201,202,404
-#   register: cluster_check
+- name: Slurp the blueprint
+  slurp:
+    src: "/tmp/{{ blueprint_name }}.json"
+  register: cluster_blueprint
 
-# - name: Fail if a cluster {{ cluster_name }} already exists
-#   fail:
-#     msg: Cluster {{ cluster_name }} already exists!
-#   when: cluster_check.status!=404
+- name: Upload the blueprint to the Ambari server
+  uri:
+    url: "http://{{ ansible_fqdn }}:8080/api/v1/blueprints/{{ blueprint_name }}"
+    method: POST
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari"}'
+    body: " {{ cluster_blueprint.content | b64decode }}"
+    body_format: raw
+    status_code: 200,201,202,404
+    timeout: 60
+    return_content: no
 
-# - name: Slurp the cluster creation template
-#   slurp:
-#     src: '/tmp/cluster_template'
-#   register: cluster_template
+- name: Check if a cluster {{ cluster_name }} already exists
+  uri:
+    url: "http://{{ ansible_fqdn }}:8080/api/v1/clusters/{{ cluster_name }}"
+    method: GET
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari"}'
+    status_code: 200,201,202,404
+  register: cluster_check
 
-# - name: Launch the create cluster request
-#   uri:
-#     url: http://{{ ansible_fqdn }}:8080/api/v1/clusters/{{ cluster_name }}
-#     method: POST
-#     force_basic_auth: yes
-#     user: "{{ ambari_admin_user }}"
-#     password: "{{ ambari_admin_password }}"
-#     headers: '{"X-Requested-By":"ambari"}'
-#     body: " {{ cluster_template.content | b64decode }}"
-#     body_format: raw
-#     status_code: 200,201,202
-#     timeout: 120
-#     return_content: yes
-#   register: cluster_create_task
+- name: fail if a cluster {{ cluster_name }} already exists
+  fail:
+    msg: Cluster {{ cluster_name }} already exists!
+  when: cluster_check.status!=404
 
-# - name: Wait for the cluster to be built
-#   uri:
-#     url: "{{ (cluster_create_task.content|from_json).href }}"
-#     force_basic_auth: yes
-#     user: "{{ ambari_admin_user }}"
-#     password: "{{ ambari_admin_password }}"
-#     headers: '{"X-Requested-By":"ambari", "Content-Type":"application/json"}'
-#     status_code: 200,201,202
-#     return_content: yes
-#   register: cluster_check_task
-#   until: (((cluster_check_task.content|from_json).Requests.request_status == 'COMPLETED' and (cluster_check_task.content|from_json).Requests.completed_task_count|int > 0) or
-#          (cluster_check_task.content|from_json).Requests.request_status == 'FAILED' or
-#          (cluster_check_task.content|from_json).Requests.request_status == 'TIMEDOUT' or
-#          (cluster_check_task.content|from_json).Requests.request_status == 'ABORTED')
-#   retries: "{{ wait_timeout // 10 }}"
-#   delay: 10
-#   when: wait and cluster_create_task is defined and cluster_create_task
+- name: slurp the cluster creation template
+  slurp:
+    src: '/tmp/cluster_template.json'
+  register: cluster_template
 
-# - name: Fail if the cluster create task is in an error state
-#   fail:
-#     msg: "Failed to build the {{ cluster_name }} cluster. Task Status is {{ (cluster_check_task.content|from_json).Requests.request_status }}."
-#   when: wait and ((cluster_check_task.content|from_json).Requests.request_status == 'FAILED' or
-#          (cluster_check_task.content|from_json).Requests.request_status == 'TIMEDOUT' or
-#          (cluster_check_task.content|from_json).Requests.request_status == 'ABORTED')
+- name: launch request to create hadoop cluster
+  uri:
+    url: http://{{ ansible_fqdn }}:8080/api/v1/clusters/{{ cluster_name }}
+    method: POST
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari"}'
+    body: " {{ cluster_template.content | b64decode }}"
+    body_format: raw
+    status_code: 200,201,202
+    timeout: 120
+    return_content: yes
+  register: cluster_create_task
+
+- name: wait for the cluster to be built
+  uri:
+    url: "{{ (cluster_create_task.content|from_json).href }}"
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari", "Content-Type":"application/json"}'
+    status_code: 200,201,202
+    return_content: yes
+  register: cluster_check_task
+  until: (((cluster_check_task.content|from_json).Requests.request_status == 'COMPLETED' and (cluster_check_task.content|from_json).Requests.completed_task_count|int > 0) or
+         (cluster_check_task.content|from_json).Requests.request_status == 'FAILED' or
+         (cluster_check_task.content|from_json).Requests.request_status == 'TIMEDOUT' or
+         (cluster_check_task.content|from_json).Requests.request_status == 'ABORTED')
+  retries: "{{ wait_timeout // 10 }}"
+  delay: 10
+  when: wait and cluster_create_task is defined and cluster_create_task
+
+- name: Fail if the cluster create task is in an error state
+  fail:
+    msg: "Failed to build the {{ cluster_name }} cluster. Task Status is {{ (cluster_check_task.content|from_json).Requests.request_status }}."
+  when: wait and ((cluster_check_task.content|from_json).Requests.request_status == 'FAILED' or
+         (cluster_check_task.content|from_json).Requests.request_status == 'TIMEDOUT' or
+         (cluster_check_task.content|from_json).Requests.request_status == 'ABORTED')
+
+- name: create user directory for ambari admin
+  shell: |
+    sudo -u hdfs hdfs dfs -mkdir /user/{{ item }}
+    sudo -u hdfs hdfs dfs -chown {{ item }}:hdfs /user/{{ item }}
+  with_items:
+    - "{{ ambari_admin_user }}"

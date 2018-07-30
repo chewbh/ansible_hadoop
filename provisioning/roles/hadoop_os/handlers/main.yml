@@ -1,0 +1,7 @@
+---
+# for Grub - THP
+- name: generate the Grub config file
+  shell: "{{ update_grub_command }}"
+  args:
+    chdir: /
+  become: yes

@@ -7,17 +7,38 @@
   when: ansible_hostname_as_actual
 
 - import_tasks: hosts.yml
-  when: set_static_hosts
+  when: not external_dns
 
-- name: install yum utilities
+- name: remove invalid mapping of hostname to loopback address (e.g. vagrant change host capabililty)
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.0\.1'
+    state: absent
+  become: yes
+
+- name: add back removed valid loopback address mapping to localhost
+  lineinfile:
+    path: /etc/hosts
+    insertbefore: BOF
+    line: '127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4'
+    state: present
+  become: yes
+
+- name: install yum utilities for recovery from yum failure
   yum:
     name: "{{ item }}"
     state: present
   with_items:
     - yum-utils
   become: yes
+  when: ansible_os_family|lower == 'redhat'
 
-- import_tasks: useful_utilities.yml
+- name: install useful os utilities and packages
+  import_tasks: useful_utilities.yml
+
+- name: install java
+  import_tasks: java_install.yml
+  when: java != "embedded"
 
 - import_tasks: sudoer.yml
 

@@ -1,0 +1,37 @@
+{
+  "blueprint": "nydoop-cluster",
+  "repository_version": "2.6.5.0-292",
+  "default_password": "admin",
+  "host_groups": [
+    {
+      "name": "master_1",
+      "hosts": [
+        { "fqdn": "n-group3-nn1" }
+      ]
+    },
+    {
+      "name": "master_2",
+      "hosts": [
+        { "fqdn": "n-group3-nn2" }
+      ]
+    },
+    {
+      "name": "slave_1",
+      "hosts": [
+        { "fqdn": "n-group3-dn1" }
+      ]
+    },
+    {
+      "name": "slave_2",
+      "hosts": [
+        { "fqdn": "n-group3-dn2" }
+      ]
+    },
+    {
+      "name": "slave_3",
+      "hosts": [
+        { "fqdn": "n-group3-dn3" }
+      ]
+    }
+  ]
+}

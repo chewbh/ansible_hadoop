@@ -10,6 +10,24 @@
 # tune ulimit
 - import_tasks: ulimit.yml
 
+- name: Disable Transparent Huge Pages until the next reboot
+  shell: echo never > /sys/kernel/mm/transparent_hugepage/enabled && echo never > /sys/kernel/mm/transparent_hugepage/defrag
+  args:
+    removes: /sys/kernel/mm/transparent_hugepage/enabled
+  become: yes
+
+- name: Disable Transparent Huge Pages in Grub 2
+  lineinfile:
+    path: /etc/default/grub
+    state: present
+    line: 'GRUB_CMDLINE_LINUX=$GRUB_CMDLINE_LINUX" transparent_hugepage=never"'
+  become: yes
+  when: ansible_os_family|lower == "redhat" and ansible_distribution_major_version|int == 7
+
+  notify: generate the Grub config file
+
+- meta: flush_handlers
+
 # - name: make java installed from ambari available in host
 #   shell: |
 #     echo "export JAVA_HOME=`cd /usr/jdk64/jdk*/ && pwd`" >> /etc/profile.d/hadoop.sh

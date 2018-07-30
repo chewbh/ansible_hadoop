@@ -1,0 +1,26 @@
+---
+base_os_packages:
+  - openssl
+  - openssh-clients
+  - openssl-devel
+  - vim
+  - tmux
+  - wget
+  - curl
+  - tar
+  - unzip
+  - git
+  - tree
+  - rsync
+  - zsh
+  - htop
+  - jq
+  - xclip
+  - python-pip
+  - mysql-devel
+  - python-devel
+  - MySQL-python
+  - ntp
+
+ntp_service_name: ntpd
+

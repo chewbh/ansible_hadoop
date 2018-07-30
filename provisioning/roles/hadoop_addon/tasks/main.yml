@@ -15,8 +15,9 @@
   with_items:
     - lzo
     - lzo-devel
-    - hadooplzo
+    - hadoop-lzo
     - hadooplzo-native
+  ignore_errors: yes
   become: yes
 
 

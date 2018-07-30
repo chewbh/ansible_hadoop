@@ -1,0 +1,13 @@
+
+create user {{ edw_database_user }};
+grant all on {{ edw_database_name }}.* to '{{ edw_database_user }}'@'{{ ansible_fqdn }}' identified by '{{ edw_database_password }}';
+
+use {{ edw_database_name }};
+
+CREATE TABLE customers (
+  id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  firstname VARCHAR(30) NOT NULL,
+  lastname VARCHAR(30) NOT NULL,
+  email VARCHAR(50),
+  reg_date TIMESTAMP
+);

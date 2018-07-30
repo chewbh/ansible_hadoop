@@ -1,16 +1,26 @@
-#
-# Global variables for all nodes
-#
+# Default global configuration for all nodes
 ---
+
+###########################
+## general configuration ##
+###########################
+
+# indicate the os architecture (in event that script extended to support beyond intel x64)
+# not in use at this stage (assume is amd64)
 host_arch: amd64
 
+# indicate wether nodes have access to internet (hence uses public yum repository, etc)
+# not in use at this stage (assume is online)
 is_online: yes
 
 # force ansible inventory hostname to be the actual node's hostname
 ansible_hostname_as_actual: yes
 
-# flag to indicate static hosts file to be replaced
-set_static_hosts: no
+# flag to use static hosts file or relies on external_dns (e.g. using vagranthostmanager plugin)
+external_dns: yes
+
+# flag to disable the existing local firewall service
+disable_firewall: no
 
 # the list of users to create with support for passwordless login within the cluster
 passwordless_ssh_users:
@@ -18,9 +28,85 @@ passwordless_ssh_users:
     sudoer: no
     passwordless: yes
     home_dir: /root
-  - name: sysadmin
+  - name: admin
     sudoer: yes
     passwordless: yes
+  # - name: sysadmin
+  #   sudoer: yes
+  #   passwordless: yes
 
+##################################
+## hadoop cluster configuration ##
+##################################
+
+# name of the hadoop cluster (managed by ambari)
+cluster_name: nydoop
+
+# version of ambari to use, must be the 4-part full version number
 ambari_version: 2.6.2.2
+
+# version of hadoop stack to use, must be the 4-part full version number
 hdp_version: 2.6.5.0
+hdp_build_number: 292
+hdp_stack_version: 2.6.5.0-292
+
+repo_base_url: 'http://public-repo-1.hortonworks.com'     # change this if using a Local Repository
+
+##########################
+## ambari configuration ##
+##########################
+
+# user to access and configure ambari
+ambari_admin_user: admin
+ambari_admin_password: admin
+
+# flag to wait for the cluster to finish installing when executing ansible
+wait: true
+
+# The amount of time to wait (in secs) for cluster installation before declaring as failure
+wait_timeout: 3600
+
+# set to yes to allow ambari to install GPL licensed libraries
+accept_gpl: yes
+
+####################################
+## ambari blueprint configuration ##
+####################################
+
+# name of the ambari blueprint to deploy
+blueprint_name: '{{ cluster_name }}_blueprint'
+
+# the blueprint file (in JSON) to use - Jinja2 template that generates the required JSON
+# could use this link to generate the blueprint: http://yabbletech.com/projects/nodeview/html/#/
+blueprint_file: 'blueprint_2.json.j2'
+
+# host mapping file (in JSON) to use - Jinja2 template that generates the required JSON
+host_mapping_file: 'blueprint_cluster_creation.json.j2'
+
+####################################
+## EDW configuration ##
+####################################
+
+edw_database_name: nydoop
+edw_database_user: edw_user
+edw_database_password: password
+
+########################
+## java configuration ##
+########################
+
+java: 'oraclejdk'                                         # can be set to 'embedded' or 'oraclejdk'
+oraclejdk_options:                                        # only used when java is set to 'oraclejdk'
+  base_folder: '/usr/java'                                # the folder where the Java package should be unpacked to
+  tarball_location: '/tmp/jdk-8u112-linux-x64.tar.gz'     # the location of the tarball on the remote system or on the Ansible controller
+  jce_location: '/tmp/jce_policy-8.zip'                   # the location of the JCE package on the remote system or on the Ansible controller
+  jce_policy_download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip
+  download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz
+
+############################
+## helper variables       ##
+############################
+
+# don't change these unless there is a good reason
+hdfs_ha_name: "{{ cluster_name | regex_replace('_','-') }}"
+

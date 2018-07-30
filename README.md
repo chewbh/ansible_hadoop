@@ -22,10 +22,8 @@ Both Vagrant and Ansible are used to automate the entire Vm setup in VirtualBox 
 ```sh
 vagrant plugin install vagrant-share
 vagrant plugin install vagrant-vbguest
-vagrant plugin install landrush
+vagrant plugin install vagrant-hostmanager
 ```
-
-2. Install Ansible locally (for Linux OS only).
 
 3. Follow the steps below on shell / command line:
 
@@ -36,14 +34,25 @@ git clone git@gitlab.com:nydoop/hadoop-infra.git
 # navigate to the root directory of the cloned repo
 cd hadoop-infra
 
-# build the entire VMs for the cluster
-# vagrant will call ansible right after VM provisioning
+# build the entire VM for the cluster
+# vagrant will call ansible right after VM provisioning to create cluster
+# you might need to wait for awhile (e.g. 20-60 mins) depending on macine specs and internet speed
 vagrant up
 
-# to remove all VMs (when no longer needed after use)
+# to remove VM (when no longer needed after use)
 vagrant destroy
 
 ```
+
+3. Access the ambari web url [http://n-group3-nydoop:8080](http://n-group3-nydoop:8080)
+
+ - username: admin
+ - password: admin
+
+4. To access Zeppelin, go to [http://n-group3-nydoop:9995](http://n-group3-nydoop:9995)
+
+ - username: admin
+ - password: admin
 
 Cloud Environment
 ------------------
@@ -71,3 +80,10 @@ Requirements
 
 - Expects CentOS/RHEL hosts
 
+
+Discovered Issues
+-------------------
+
+- Using Blueprints, hdfs ha can be setup directly
+- zookeeper will not work if hostname is resolved to loopback address (127.0.0.1) in /etc/hosts
+- ambari admin user should have their user directory created for ambari views to work

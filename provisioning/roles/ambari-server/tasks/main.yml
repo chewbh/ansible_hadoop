@@ -12,8 +12,13 @@
   file : dest=/opt/ambari-install state=directory mode=0755
   become: yes
 
+- name: Set the Ambari Server Java setup option (Oracle JDK)
+  set_fact:
+    ambari_java_options: "-j {{ oraclejdk_options.base_folder }}/latest"
+  when: java == "oraclejdk"
+
 - name: configure ambari-server
-  shell: ambari-server setup --enable-lzo-under-gpl-license -s > /tmp/ambari-install-output
+  shell: ambari-server setup -s --enable-lzo-under-gpl-license {{ ambari_java_options|default("") }} > /tmp/ambari-install-output
   args:
     creates: /opt/ambari-install/ansible.done
     executable: /bin/bash

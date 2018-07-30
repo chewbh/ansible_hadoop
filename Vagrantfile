@@ -25,7 +25,6 @@ Vagrant.configure("2") do |config|
   config.hostmanager.manage_guest = true
   config.hostmanager.ignore_private_ip = false
   config.hostmanager.include_offline = true
-  # config.ssh.insert_key = false
 
   # copy public SSH keys to the VM to enable passwordless login for vagrant user
   config.vm.provision "file", source: "ssh_key/id_rsa", destination: "/home/vagrant/.ssh/id_rsa"
@@ -100,13 +99,14 @@ Vagrant.configure("2") do |config|
         node.vm.provision "ansible_local" do |ansible|
           ansible.verbose = "v"
           ansible.limit = "all"
-          ansible.playbook = "/vagrant/provisioning/base_node.yaml"
+          ansible.playbook = "/vagrant/provisioning/create_hadoop_cluster.yaml"
           ansible.groups = {
             "ambari-server" => ["n-group3-nn1"],
             "ambari-clients" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
             "name-nodes" => ["n-group3-nn[1:#{i-1}]"],
             "data-nodes" => ["n-group3-dn[1:#{i}]"],
-            "all_groups:children" => ["ambari-server", "ambari-clients", "name-nodes", "data-nodes"]
+            "edw-node" => ["n-group3-dn1"],
+            "all_groups:children" => ["ambari-server", "ambari-clients", "name-nodes", "data-nodes", "edw-node"]
           }
         end
       end

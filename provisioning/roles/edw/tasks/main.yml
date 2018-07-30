@@ -1,0 +1,30 @@
+# tasks for edw role
+---
+
+# assume mysql is already installed as part of the hive setup (by ambari)
+
+- name: check if edw exists
+  shell: mysql -e 'SHOW DATABASES;' | grep {{ edw_database_name }}
+  become: true
+  register: dbstatus
+  failed_when: dbstatus.rc == 2
+
+- name: Upload the ddl file for edw
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0640
+    force: yes
+  with_items:
+    - src: edw_ddl.sql.j2
+      dest: "/tmp/edw_ddl.sql"
+  when: dbstatus.stdout == ""
+
+- name: import the ddl file to create the edw
+  mysql_db:
+    state: import
+    name: "{{ edw_database_name }}"
+    login_host: "{{ ansible_fqdn }}"
+    login_user: root
+    target: "/tmp/edw_ddl.sql"
+  when: dbstatus.stdout == ""

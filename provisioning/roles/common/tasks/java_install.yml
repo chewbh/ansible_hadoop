@@ -1,0 +1,64 @@
+---
+- block:
+    - name: download oraclejdk file
+      get_url:
+        url: "{{ oraclejdk_options.download_url }}"
+        dest: "{{ oraclejdk_options.tarball_location }}"
+
+    - name: download jce8 policy file
+      get_url:
+        url: "{{ oraclejdk_options.jce_policy_download_url }}"
+        dest: "{{ oraclejdk_options.jce_location }}"
+
+    - name: create the {{ oraclejdk_options.base_folder }} directory
+      file:
+        path: "{{ oraclejdk_options.base_folder }}"
+        state: directory
+      become: yes
+
+    - name: extract the Oracle JDK tarball
+      unarchive:
+        src: "{{ oraclejdk_options.tarball_location }}"
+        dest: "{{ oraclejdk_options.base_folder }}"
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: yes
+        list_files: yes
+        keep_newer: yes
+      register: tarball_content
+      become: yes
+
+    - name: Set the new JDK folder name
+      set_fact:
+        jdk_folder: "{{ tarball_content.files[0] | regex_replace('/(.*)$','') }}"
+
+    - name: Create the {{ oraclejdk_options.base_folder }}/latest symlink
+      file:
+        src: "{{ oraclejdk_options.base_folder }}/{{ jdk_folder }}"
+        path: "{{ oraclejdk_options.base_folder }}/latest"
+        state: link
+        force: yes
+      become: yes
+
+    - name: Extract the JCE archive
+      unarchive:
+        src: "{{ oraclejdk_options.jce_location }}"
+        dest: "{{ oraclejdk_options.base_folder }}/latest/jre/lib/security"
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: yes
+      become: yes
+
+    - name: Copy the JCE jar files to {{ oraclejdk_options.base_folder }}/latest/jre/lib/security
+      copy:
+        src: "{{ oraclejdk_options.base_folder }}/latest/jre/lib/security/UnlimitedJCEPolicyJDK8/{{ item }}"
+        dest: "{{ oraclejdk_options.base_folder }}/latest/jre/lib/security"
+        force: yes
+        remote_src: yes
+      with_items:
+        - local_policy.jar
+        - US_export_policy.jar
+      become: yes
+  when: java == "oraclejdk"
