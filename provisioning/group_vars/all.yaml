@@ -31,9 +31,6 @@ passwordless_ssh_users:
   - name: admin
     sudoer: yes
     passwordless: yes
-  # - name: sysadmin
-  #   sudoer: yes
-  #   passwordless: yes
 
 ##################################
 ## hadoop cluster configuration ##
@@ -48,7 +45,7 @@ ambari_version: 2.6.2.2
 # version of hadoop stack to use, must be the 4-part full version number
 hdp_version: 2.6.5.0
 hdp_build_number: 292
-hdp_stack_version: 2.6.5.0-292
+hdp_stack_version: "{{ hdp_version }}-{{ hdp_build_number }}" # 2.6.5.0-292
 
 repo_base_url: 'http://public-repo-1.hortonworks.com'     # change this if using a Local Repository
 
@@ -83,6 +80,67 @@ blueprint_file: 'blueprint_2.json.j2'
 # host mapping file (in JSON) to use - Jinja2 template that generates the required JSON
 host_mapping_file: 'blueprint_cluster_creation.json.j2'
 
+# confinguration on the components specified in the ambari blueprint
+namenode_groups:
+  - master_1
+  - master_2
+zookeeper_groups:
+  - cc
+blueprint_dynamic:
+
+  - host_group: "master_1"
+    clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'HCAT', 'OOZIE_CLIENT', 'SPARK2_CLIENT']
+    services:
+      - ZOOKEEPER_SERVER
+      - NAMENODE
+      - ZKFC
+      - JOURNALNODE
+      - RESOURCEMANAGER
+      - ZEPPELIN_MASTER
+      - METRICS_MONITOR
+
+  - host_group: "master_2"
+    clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'OOZIE_CLIENT', 'SPARK2_CLIENT']
+    services:
+      - ZOOKEEPER_SERVER
+      - NAMENODE
+      - ZKFC
+      - JOURNALNODE
+      - RESOURCEMANAGER
+      - APP_TIMELINE_SERVER
+      - HISTORYSERVER
+      - SPARK2_JOBHISTORYSERVER
+      - METRICS_MONITOR
+
+  - host_group: "slave_1"
+    clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'HCAT', 'OOZIE_CLIENT', 'SPARK2_CLIENT']
+    services:
+      - ZOOKEEPER_SERVER
+      - JOURNALNODE
+      - DATANODE
+      - NODEMANAGER
+      - METRICS_MONITOR
+      - OOZIE_SERVER
+      - MYSQL_SERVER
+      - HIVE_SERVER
+      - HIVE_METASTORE
+      - WEBHCAT_SERVER
+
+  - host_group: "slave_2"
+    clients: ['HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'OOZIE_CLIENT', 'SPARK2_CLIENT']
+    services:
+      - DATANODE
+      - NODEMANAGER
+      - METRICS_MONITOR
+
+  - host_group: "slave_3"
+    clients: ['HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'OOZIE_CLIENT', 'SPARK2_CLIENT']
+    services:
+      - DATANODE
+      - NODEMANAGER
+      - METRICS_MONITOR
+      - METRICS_COLLECTOR
+
 ####################################
 ## EDW configuration ##
 ####################################
@@ -108,5 +166,7 @@ oraclejdk_options:                                        # only used when java 
 ############################
 
 # don't change these unless there is a good reason
+hdp_minor_version: "{{ hdp_version | regex_replace('.[0-9]+.[0-9]+[0-9_-]*$','') }}"
+hdp_major_version: "{{ hdp_minor_version.split('.').0 }}"
+utils_version: "{{ '1.1.0.20' if hdp_minor_version is version_compare('2.5', '<') else ('1.1.0.21' if hdp_version is version_compare('2.6.4', '<') else '1.1.0.22' ) }}"
 hdfs_ha_name: "{{ cluster_name | regex_replace('_','-') }}"
-

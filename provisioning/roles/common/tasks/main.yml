@@ -1,4 +1,4 @@
-# tasks for base role
+# tasks for common role
 ---
 
 - hostname:

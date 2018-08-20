@@ -1,0 +1,13 @@
+# python library setup
+---
+- name: install python packages for data science
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - pytest
+    - pyyaml
+    - colorama
+    - numpy
+    - nltk
+    - pandas
+  become: yes

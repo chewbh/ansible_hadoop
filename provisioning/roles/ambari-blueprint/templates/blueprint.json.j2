@@ -4,87 +4,23 @@
     "stack_name": "HDP",
     "stack_version": "{{ hdp_minor_version }}"
   },
-  "host_groups": [
+  "host_groups" : [
+    {% for blueprint_item in blueprint_dynamic if groups[blueprint_item.host_group] is defined and groups[blueprint_item.host_group]|length > 0 -%}
     {
-      "name": "master_1",
+      "name" : "{{ blueprint_item.host_group }}",
       "cardinality" : "1",
-      "components": [
-        { "name": "JOURNALNODE" },
-        { "name": "METRICS_MONITOR" },
-        { "name": "NAMENODE" },
-        { "name": "RESOURCEMANAGER" },
-        { "name": "ZKFC" },
-        { "name": "ZEPPELIN_MASTER" },
-        { "name": "ZOOKEEPER_SERVER" },
-        { "name": "HDFS_CLIENT" },
-        { "name": "HIVE_CLIENT" },
-        { "name": "MAPREDUCE2_CLIENT" },
-        { "name": "OOZIE_CLIENT" },
-        { "name": "PIG" },
-        { "name": "SPARK2_CLIENT" },
-        { "name": "SQOOP" },
-        { "name": "TEZ_CLIENT" },
-        { "name": "YARN_CLIENT" }
+      "configurations" : [ ],
+      "components" : [
+        {% for client in blueprint_item.clients -%}
+        { "name" : "{{ client }}" },
+        {% endfor %}
+        {% for service in blueprint_item.services -%}
+        { "name" : "{{ service }}" }
+        {% if not loop.last %},{% endif %}
+        {% endfor %}
       ]
-    },
-    {
-      "name": "master_2",
-      "cardinality" : "1",
-      "components": [
-        { "name": "APP_TIMELINE_SERVER" },
-        { "name": "HISTORYSERVER" },
-        { "name": "JOURNALNODE" },
-        { "name": "METRICS_MONITOR" },
-        { "name": "NAMENODE" },
-        { "name": "RESOURCEMANAGER" },
-        { "name": "SPARK2_JOBHISTORYSERVER" },
-        { "name": "ZKFC" },
-        { "name": "ZOOKEEPER_SERVER" }
-      ]
-    },
-    {
-      "name": "slave_1",
-      "cardinality" : "1",
-      "components": [
-        { "name": "DATANODE" },
-        { "name": "JOURNALNODE" },
-        { "name": "METRICS_MONITOR" },
-        { "name": "NODEMANAGER" },
-        { "name": "OOZIE_CLIENT" },
-        { "name": "OOZIE_SERVER" },
-        { "name": "PIG" },
-        { "name": "SQOOP" },
-        { "name": "HIVE_SERVER" },
-        { "name": "HIVE_METASTORE" },
-        { "name": "WEBHCAT_SERVER" },
-        { "name": "MYSQL_SERVER" },
-        { "name": "ZOOKEEPER_SERVER" }
-      ]
-    },
-    {
-      "name": "slave_2",
-      "components": [
-        { "name": "DATANODE" },
-        { "name": "METRICS_MONITOR" },
-        { "name": "NODEMANAGER" }
-      ]
-    },
-    {
-      "name": "slave_3",
-      "cardinality" : "1",
-      "components": [
-        { "name": "DATANODE" },
-        { "name": "HDFS_CLIENT" },
-        { "name": "MAPREDUCE2_CLIENT" },
-        { "name": "METRICS_COLLECTOR" },
-        { "name": "METRICS_MONITOR" },
-        { "name": "NODEMANAGER" },
-        { "name": "SPARK2_CLIENT" },
-        { "name": "TEZ_CLIENT" },
-        { "name": "YARN_CLIENT" },
-        { "name": "ZOOKEEPER_CLIENT" }
-      ]
-    }
+    }{% if not loop.last and groups[blueprint_item.host_group]|length > 0 %},{% endif %}
+    {% endfor %}
   ],
   "configurations": [
     {
@@ -102,7 +38,7 @@
           "hadoop.proxyuser.hdfs.hosts" : "*",
           "hadoop.proxyuser.hadoop.groups" : "*",
           "hadoop.proxyuser.hadoop.hosts" : "*",
-          "hadoop.proxyuser.yarn.hosts" : "%HOSTGROUP::master_1%,%HOSTGROUP::master_2%",
+          "hadoop.proxyuser.yarn.hosts" : "*",
           "hadoop.proxyuser.hcat.groups" : "*",
           "hadoop.proxyuser.hcat.hosts" : "*",
           "hadoop.proxyuser.hive.groups" : "*",
@@ -111,6 +47,35 @@
           "hadoop.proxyuser.oozie.hosts" : "*",
           "io.compression.codecs" : "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec"
           "fs.trash.interval" : "360"
+        }
+      }
+    },
+    {
+      "hdfs-site" : {
+        "properties": {
+          {% if namenode_groups|length > 1 -%}
+          "dfs.client.failover.proxy.provider.{{ hdfs_ha_name }}" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+          "dfs.ha.automatic-failover.enabled" : "true",
+          "dfs.ha.fencing.methods" : "shell(/bin/true)",
+          "dfs.ha.namenodes.{{ hdfs_ha_name }}" : "nn1,nn2",
+          "dfs.namenode.http-address.{{ hdfs_ha_name }}.nn1" : "%HOSTGROUP::{{ namenode_groups[0] }}%:50070",
+          "dfs.namenode.http-address.{{ hdfs_ha_name }}.nn2" : "%HOSTGROUP::{{ namenode_groups[1] }}%:50070",
+          "dfs.namenode.https-address.{{ hdfs_ha_name }}.nn1" : "%HOSTGROUP::{{ namenode_groups[0] }}%:50470",
+          "dfs.namenode.https-address.{{ hdfs_ha_name }}.nn2" : "%HOSTGROUP::{{ namenode_groups[1] }}%:50470",
+          "dfs.namenode.rpc-address.{{ hdfs_ha_name }}.nn1" : "%HOSTGROUP::{{ namenode_groups[0] }}%:8020",
+          "dfs.namenode.rpc-address.{{ hdfs_ha_name }}.nn2" : "%HOSTGROUP::{{ namenode_groups[1] }}%:8020",
+          "dfs.namenode.shared.edits.dir" : "qjournal://{% for jn in journalnode_groups %}%HOSTGROUP::{{ jn }}%:8485{% if not loop.last %};{% endif %}{% endfor %}/{{ hdfs_ha_name }}",
+          "dfs.nameservices" : "{{ hdfs_ha_name }}",
+          {% endif -%}
+          {% if rangeradmin_hosts|length > 0 and ranger_options.enable_plugins|default(no) %}
+            "dfs.namenode.inode.attributes.provider.class" : "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
+          {% endif %}
+          {% if rangerkms_hosts|length > 0 %}
+            "dfs.encryption.key.provider.uri" : "kms://http@{% for kmshost in rangerkms_hosts %}{{ hostvars[kmshost]['ansible_fqdn'] }}{% if not loop.last %};{% endif %}{% endfor %}:9292/kms",
+          {% endif %}
+          "dfs.datanode.data.dir" : "/hadoop/hdfs/data",
+          "dfs.datanode.failed.volumes.tolerated" : "0",
+          "dfs.replication" : "{{ hdfs_replication|default(3) }}"
         }
       }
     },

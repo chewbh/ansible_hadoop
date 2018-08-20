@@ -4,6 +4,7 @@
   roles:
     - common
     - hadoop_os
+    - pyspark_addon
 
 - name: ambari server setup
   hosts: ambari-server

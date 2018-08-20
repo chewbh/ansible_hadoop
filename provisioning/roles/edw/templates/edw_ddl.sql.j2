@@ -1,6 +1,7 @@
 
 create user {{ edw_database_user }};
-grant all on {{ edw_database_name }}.* to '{{ edw_database_user }}'@'{{ ansible_fqdn }}' identified by '{{ edw_database_password }}';
+grant all on {{ edw_database_name }}.* to '{{ edw_database_user }}'@'%' identified by '{{ edw_database_password }}';
+
 
 use {{ edw_database_name }};
 
