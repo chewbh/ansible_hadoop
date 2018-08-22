@@ -53,9 +53,12 @@ repo_base_url: 'http://public-repo-1.hortonworks.com'     # change this if using
 ## ambari configuration ##
 ##########################
 
+# the default password for all ambari and hadoop component if they are not specified
+default_password: admin
+
 # user to access and configure ambari
 ambari_admin_user: admin
-ambari_admin_password: admin
+ambari_admin_password: "{{ default_password }}"
 
 # flag to wait for the cluster to finish installing when executing ansible
 wait: true
@@ -75,17 +78,18 @@ blueprint_name: '{{ cluster_name }}_blueprint'
 
 # the blueprint file (in JSON) to use - Jinja2 template that generates the required JSON
 # could use this link to generate the blueprint: http://yabbletech.com/projects/nodeview/html/#/
-blueprint_file: 'blueprint_2.json.j2'
+blueprint_file: 'blueprint.json.j2'
 
 # host mapping file (in JSON) to use - Jinja2 template that generates the required JSON
-host_mapping_file: 'blueprint_cluster_creation.json.j2'
+host_mapping_file: 'host_mapping.json.j2'
 
 # confinguration on the components specified in the ambari blueprint
-namenode_groups:
-  - master_1
-  - master_2
-zookeeper_groups:
-  - cc
+# namenode_groups:
+#   - master_1
+#   - master_2
+# zookeeper_groups:
+#   - cc
+
 blueprint_dynamic:
 
   - host_group: "master_1"
@@ -140,6 +144,27 @@ blueprint_dynamic:
       - NODEMANAGER
       - METRICS_MONITOR
       - METRICS_COLLECTOR
+
+####################################
+## Hadoop cluster configuration ##
+####################################
+
+hdfs_data_dir: '/hadoop/hdfs/data'
+hdfs_data_failed_volumes_tolerated: 0
+
+hdfs_data_replication: 3
+
+#######################################
+## python and pyspark configuration  ##
+#######################################
+
+nltk_data_dir: '/usr/share/nltk_data'
+
+nltk_data_package:
+  - popular
+  - punkt
+  - stopwords
+  - wordnet
 
 ####################################
 ## EDW configuration ##

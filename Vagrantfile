@@ -102,11 +102,24 @@ Vagrant.configure("2") do |config|
           ansible.playbook = "/vagrant/provisioning/create_hadoop_cluster.yaml"
           ansible.groups = {
             "ambari-server" => ["n-group3-nn1"],
-            "ambari-clients" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
             "name-nodes" => ["n-group3-nn[1:#{i-1}]"],
             "data-nodes" => ["n-group3-dn[1:#{i}]"],
+            "master_1" => ["n-group3-nn1"],
+            "master_2" => ["n-group3-nn2"],
+            "slave_1" => ["n-group3-dn1"],
+            "slave_2" => ["n-group3-dn2"],
+            "slave_3" => ["n-group3-dn3"],
             "edw-node" => ["n-group3-dn1"],
-            "all_groups:children" => ["ambari-server", "ambari-clients", "name-nodes", "data-nodes", "edw-node"]
+            "all_groups:children" => [
+              "ambari-server",
+              "name-nodes",
+              "data-nodes",
+              "master_1", "master_2",
+              "slave_1", "slave_2", "slave_3",
+              "edw-node"
+            ]
+            # "ambari-clients" => ["n-group3-nn2", "n-group3-dn[1:#{i}]"],
+            # "all_groups:children" => ["ambari-server", "ambari-clients", "name-nodes", "data-nodes", "edw-node"]
           }
         end
       end

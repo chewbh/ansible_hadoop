@@ -1,0 +1,10 @@
+
+- name: Install Snappy all nodes in cluster
+  hosts: all
+  roles:
+    - hadoop_addon
+
+- name: additional pyspark dependencies for all nodes in cluster
+  hosts: all
+  roles:
+    - pyspark_addon

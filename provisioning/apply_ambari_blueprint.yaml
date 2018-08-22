@@ -1,0 +1,12 @@
+---
+- name: Gather facts from all nodes
+  hosts: all
+  any_errors_fatal: true
+  become: yes
+
+- import_playbook: "build_ambari_vars.yaml"
+
+- name: hadoop cluster setup using ambari blueprint
+  hosts: ambari-server
+  roles:
+   - ambari-blueprint

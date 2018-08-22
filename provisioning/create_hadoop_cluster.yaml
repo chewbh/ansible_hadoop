@@ -1,6 +1,10 @@
 ---
 - import_playbook: "prepare_nodes.yaml"
 
-- import_playbook: "configure_ambari.yaml"
+- import_playbook: "add_hadoop_extensions.yaml"
+
+- import_playbook: "setup_ambari.yaml"
+
+- import_playbook: "apply_ambari_blueprint.yaml"
 
 - import_playbook: "setup_edw.yaml"

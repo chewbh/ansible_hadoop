@@ -1,0 +1,17 @@
+{
+  "blueprint": "{{ blueprint_name }}",
+  "repository_version": "{{ hdp_stack_version }}",
+  "default_password": "{{ default_password }}",
+  "host_groups": [
+    {% for group in groups|sort if groups[group]|length > 0 and (group in blueprint_dynamic|map(attribute='host_group')|list) %}
+    {
+      "name" : "{{ group }}",
+      "hosts" : [
+        {% for node in groups[group]|sort -%}
+        { "fqdn" : "{{ hostvars[node]['ansible_fqdn'] | lower }}" }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}

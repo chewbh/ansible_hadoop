@@ -11,3 +11,10 @@
     - nltk
     - pandas
   become: yes
+
+- name: install NLTK data
+  shell: "python -m nltk.downloader -d {{ nltk_data_dir }} {{ item }}"
+  with_items: "{{ nltk_data_package }}"
+  args:
+    creates: "{{ nltk_data_dir }}"
+  become: yes
