@@ -4,7 +4,6 @@
   roles:
     - common
     - hadoop_os
-    - pyspark_addon
 
 - name: ambari agent setup
   hosts: all
