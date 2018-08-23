@@ -14,13 +14,13 @@ host_arch: amd64
 is_online: yes
 
 # force ansible inventory hostname to be the actual node's hostname
-ansible_hostname_as_actual: yes
+ansible_hostname_as_actual: no
 
 # flag to use static hosts file or relies on external_dns (e.g. using vagranthostmanager plugin)
 external_dns: yes
 
 # flag to disable the existing local firewall service
-disable_firewall: no
+disable_firewall: yes
 
 # the list of users to create with support for passwordless login within the cluster
 passwordless_ssh_users:

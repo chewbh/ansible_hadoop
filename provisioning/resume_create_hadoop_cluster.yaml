@@ -1,0 +1,4 @@
+---
+- import_playbook: "apply_ambari_blueprint.yaml"
+
+- import_playbook: "setup_edw.yaml"
