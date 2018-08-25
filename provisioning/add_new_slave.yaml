@@ -1,0 +1,26 @@
+---
+- name: Gather facts from all nodes
+  hosts: all
+  any_errors_fatal: true
+  become: yes
+
+- name: Base setup for new data nodes in cluster
+  hosts: data-nodes
+  roles:
+    - common
+    - hadoop_os
+
+- name: ambari agent setup
+  hosts: data-nodes
+  roles:
+   - ambari-client
+
+- name: Install Snappy all nodes in cluster
+  hosts: data-nodes
+  roles:
+    - hadoop_addon
+
+- name: additional pyspark dependencies for all nodes in cluster
+  hosts: data-nodes
+  roles:
+    - pyspark_addon
