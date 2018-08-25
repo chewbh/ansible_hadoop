@@ -145,6 +145,8 @@ blueprint_dynamic:
       - METRICS_MONITOR
       - METRICS_COLLECTOR
 
+new_slave_host_group: "slave_2"
+
 ####################################
 ## Hadoop cluster configuration ##
 ####################################

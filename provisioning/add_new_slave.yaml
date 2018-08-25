@@ -5,22 +5,27 @@
   become: yes
 
 - name: Base setup for new data nodes in cluster
-  hosts: data-nodes
+  hosts: new_slave
   roles:
     - common
     - hadoop_os
 
 - name: ambari agent setup
-  hosts: data-nodes
+  hosts: new_slave
   roles:
    - ambari-client
 
 - name: Install Snappy all nodes in cluster
-  hosts: data-nodes
+  hosts: new_slave
   roles:
     - hadoop_addon
 
 - name: additional pyspark dependencies for all nodes in cluster
-  hosts: data-nodes
+  hosts: new_slave
   roles:
     - pyspark_addon
+
+- name: add node to cluster
+  hosts: new_slave
+  roles:
+    - extend-node-ambari-blueprint
