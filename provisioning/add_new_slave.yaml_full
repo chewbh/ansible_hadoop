@@ -25,7 +25,7 @@
   roles:
     - pyspark_addon
 
-- name: Add node to cluster
+- name: add node to cluster
   hosts: new_slave
   roles:
     - extend-node-ambari-blueprint

@@ -8,6 +8,7 @@
     var: host_mapping_template|from_json
     verbosity: 1
 
+
 - name: "expand cluster by adding node {{ ansible_fqdn }}"
   uri:
     url: "http://{{ hostvars[groups['ambari-server']|sort|list|first]['ansible_fqdn'] }}:8080/api/v1/clusters/{{ cluster_name }}/hosts/{{ ansible_fqdn }}"
@@ -21,6 +22,6 @@
     status_code: 200,201,202
     timeout: 120
     return_content: yes
-    register: cluster_create_task
+    register: cluster_expand_task
   ignore_errors: yes
 

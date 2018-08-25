@@ -4,6 +4,7 @@ n-group3-nn2 ansible_host=10.0.0.4
 n-group3-dn1 ansible_host=10.0.0.5
 n-group3-dn2 ansible_host=10.0.0.6
 n-group3-dn3 ansible_host=10.0.0.7
+n-group3-dn4 ansible_host=10.0.0.8
 
 [ambari-server]
 n-group3-nn1
@@ -12,7 +13,7 @@ n-group3-nn1
 n-group3-nn[1:2]
 
 [data-nodes]
-n-group3-dn[1:3]
+n-group3-dn[1:4]
 
 [master_1]
 n-group3-nn1
@@ -25,9 +26,13 @@ n-group3-dn1
 
 [slave_2]
 n-group3-dn2
+n-group3-dn4
 
 [slave_3]
 n-group3-dn3
+
+[new_slave]
+n-group3-dn4
 
 [edw-node]
 n-group3-dn1
