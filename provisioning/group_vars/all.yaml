@@ -32,6 +32,31 @@ passwordless_ssh_users:
     sudoer: yes
     passwordless: yes
 
+########################
+## java configuration ##
+########################
+
+java: 'oraclejdk'                                         # can be set to 'embedded' or 'oraclejdk'
+oraclejdk_options:                                        # only used when java is set to 'oraclejdk'
+  base_folder: '/usr/java'                                # the folder where the Java package should be unpacked to
+  tarball_location: '/tmp/jdk-8u112-linux-x64.tar.gz'     # the location of the tarball on the remote system or on the Ansible controller
+  jce_location: '/tmp/jce_policy-8.zip'                   # the location of the JCE package on the remote system or on the Ansible controller
+  jce_policy_download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip
+  download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz
+
+
+#######################################
+## python and pyspark configuration  ##
+#######################################
+
+nltk_data_dir: '/usr/share/nltk_data'
+
+nltk_data_package:
+  - popular
+  - punkt
+  - stopwords
+  - wordnet
+
 ##################################
 ## hadoop cluster configuration ##
 ##################################
@@ -48,6 +73,11 @@ hdp_build_number: 292
 hdp_stack_version: "{{ hdp_version }}-{{ hdp_build_number }}" # 2.6.5.0-292
 
 repo_base_url: 'http://public-repo-1.hortonworks.com'     # change this if using a Local Repository
+
+hdfs_data_dir: '/hadoop/hdfs/data'
+hdfs_data_failed_volumes_tolerated: 0
+
+hdfs_data_replication: 3
 
 ##########################
 ## ambari configuration ##
@@ -69,6 +99,7 @@ wait_timeout: 3600
 # set to yes to allow ambari to install GPL licensed libraries
 accept_gpl: yes
 
+
 ####################################
 ## ambari blueprint configuration ##
 ####################################
@@ -82,13 +113,6 @@ blueprint_file: 'blueprint.json.j2'
 
 # host mapping file (in JSON) to use - Jinja2 template that generates the required JSON
 host_mapping_file: 'host_mapping.json.j2'
-
-# confinguration on the components specified in the ambari blueprint
-# namenode_groups:
-#   - master_1
-#   - master_2
-# zookeeper_groups:
-#   - cc
 
 blueprint_dynamic:
 
@@ -148,27 +172,6 @@ blueprint_dynamic:
 new_slave_host_group: "slave_2"
 
 ####################################
-## Hadoop cluster configuration ##
-####################################
-
-hdfs_data_dir: '/hadoop/hdfs/data'
-hdfs_data_failed_volumes_tolerated: 0
-
-hdfs_data_replication: 3
-
-#######################################
-## python and pyspark configuration  ##
-#######################################
-
-nltk_data_dir: '/usr/share/nltk_data'
-
-nltk_data_package:
-  - popular
-  - punkt
-  - stopwords
-  - wordnet
-
-####################################
 ## EDW configuration ##
 ####################################
 
@@ -176,17 +179,6 @@ edw_database_name: nydoop
 edw_database_user: edw_user
 edw_database_password: password
 
-########################
-## java configuration ##
-########################
-
-java: 'oraclejdk'                                         # can be set to 'embedded' or 'oraclejdk'
-oraclejdk_options:                                        # only used when java is set to 'oraclejdk'
-  base_folder: '/usr/java'                                # the folder where the Java package should be unpacked to
-  tarball_location: '/tmp/jdk-8u112-linux-x64.tar.gz'     # the location of the tarball on the remote system or on the Ansible controller
-  jce_location: '/tmp/jce_policy-8.zip'                   # the location of the JCE package on the remote system or on the Ansible controller
-  jce_policy_download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip
-  download_url: http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz
 
 ############################
 ## helper variables       ##
